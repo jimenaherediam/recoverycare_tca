@@ -34,9 +34,18 @@ const DiaryTab = ({
 
   const adjustedFirstDay = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1;
 
+  // Recovery: 5 days including today
+  const recoveryStartDate = new Date(today);
+  recoveryStartDate.setDate(today.getDate() - 4);
+
+  const isRecoveryDay = (day: number) => {
+    const d = new Date(currentYear, currentMonth, day);
+    return d >= recoveryStartDate && d <= today;
+  };
+
   const hasDataForDay = (day: number) => {
     const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-    return mealRecords.some((m) => m.date === dateStr);
+    return mealRecords.some((m) => m.date === dateStr) || isRecoveryDay(day);
   };
 
   const prevMonth = () => {
