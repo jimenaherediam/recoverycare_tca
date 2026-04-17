@@ -6,19 +6,11 @@ import SupportTab from "@/components/SupportTab";
 
 const tabs = [
   { id: "home", label: "Inicio" },
-  { id: "meal-flow", label: "Comidas" },
   { id: "diary", label: "Diario" },
-  { id: "meds", label: "Medicación" },
   { id: "support", label: "Soporte" },
 ] as const;
 
-export type TabId = (typeof tabs)[number]["id"];
-
-const PlaceholderTab = ({ name }: { name: string }) => (
-  <div className="flex items-center justify-center h-[80vh]">
-    <p className="text-muted-foreground text-lg">{name}</p>
-  </div>
-);
+export type TabId = (typeof tabs)[number]["id"] | "meal-flow";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<TabId>("home");
@@ -37,7 +29,6 @@ const Index = () => {
       {activeTab === "diary" && (
         <DiaryTab onBack={() => setActiveTab("home")} mealRecords={mealRecords} />
       )}
-      {activeTab === "meds" && <PlaceholderTab name="Medicación" />}
       {activeTab === "support" && <SupportTab onBack={() => setActiveTab("home")} />}
 
       {/* Bottom Tab Bar */}
