@@ -1,14 +1,17 @@
 import { useState } from "react";
 import { User, Bell, UtensilsCrossed, BookOpen, HeartHandshake } from "lucide-react";
-import selfHugImg from "@/assets/self-hug.png";
+import abrazoImg from "@/assets/abrazo.png";
 import ActionButton from "./ActionButton";
 import NotificationsSheet from "./NotificationsSheet";
 import ProfileSheet from "./ProfileSheet";
+import { useAuth } from "@/hooks/useAuth";
 import type { TabId } from "@/pages/Index";
 
 const HomeTab = ({ onNavigate }: { onNavigate: (tab: TabId) => void }) => {
   const [notifOpen, setNotifOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const { profile } = useAuth();
+  const firstName = profile?.nombre?.split(" ")[0] || "";
 
   return (
     <div className="h-screen flex flex-col items-center px-6 pt-6 pb-20 overflow-hidden"
@@ -26,9 +29,9 @@ const HomeTab = ({ onNavigate }: { onNavigate: (tab: TabId) => void }) => {
         </button>
       </div>
 
-      <h1 className="text-xl font-bold text-foreground">Hola Andrea</h1>
+      <h1 className="text-xl font-bold text-foreground">Hola {firstName}</h1>
 
-      <img src={selfHugImg} alt="Autocuidado" width={130} height={130} className="my-2 opacity-80" />
+      <img src={abrazoImg} alt="Abrazo de autocuidado" width={150} height={130} className="my-2 opacity-90 object-contain" />
 
       <p className="text-sm font-medium text-foreground/80">Bienvenid@ a</p>
       <h2 className="text-4xl font-extrabold text-primary leading-none text-center tracking-tight">
