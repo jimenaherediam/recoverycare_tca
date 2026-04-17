@@ -2,6 +2,7 @@ import { useState } from "react";
 import HomeTab from "@/components/HomeTab";
 import MealFlow, { type MealRecord } from "@/components/MealFlow";
 import DiaryTab from "@/components/DiaryTab";
+import SupportTab from "@/components/SupportTab";
 
 const tabs = [
   { id: "home", label: "Inicio" },
@@ -37,7 +38,7 @@ const Index = () => {
         <DiaryTab onBack={() => setActiveTab("home")} mealRecords={mealRecords} />
       )}
       {activeTab === "meds" && <PlaceholderTab name="Medicación" />}
-      {activeTab === "support" && <PlaceholderTab name="Soporte Terapéutico" />}
+      {activeTab === "support" && <SupportTab onBack={() => setActiveTab("home")} />}
 
       {/* Bottom Tab Bar */}
       <nav className="fixed bottom-0 left-0 right-0 bg-card/80 backdrop-blur-lg border-t border-border/50">
