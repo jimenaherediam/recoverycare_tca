@@ -10,7 +10,7 @@ const tabs = [
   { id: "support", label: "Soporte" },
 ] as const;
 
-export type TabId = (typeof tabs)[number]["id"];
+export type TabId = (typeof tabs)[number]["id"] | "meal-flow";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<TabId>("home");
