@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { User, Bell, UtensilsCrossed, BookOpen, HeartHandshake } from "lucide-react";
 import abrazoImg from "@/assets/abrazo.png";
+import logoImg from "@/assets/recovery-care-logo.png";
 import ActionButton from "./ActionButton";
 import NotificationsSheet from "./NotificationsSheet";
 import ProfileSheet from "./ProfileSheet";
@@ -34,9 +35,8 @@ const HomeTab = ({ onNavigate }: { onNavigate: (tab: TabId) => void }) => {
       <img src={abrazoImg} alt="Abrazo de autocuidado" width={150} height={130} className="my-2 opacity-90 object-contain" />
 
       <p className="text-sm font-medium text-foreground/80">Bienvenid@ a</p>
-      <h2 className="text-4xl font-extrabold text-primary leading-none text-center tracking-tight">
-        Recovery<br />Care
-      </h2>
+      <img src={logoImg} alt="Recovery Care" className="w-44 max-w-full h-auto object-contain" />
+      <h2 className="sr-only">Recovery Care</h2>
 
       <div className="mt-3 mb-3 w-full rounded-2xl bg-card/60 backdrop-blur-sm py-2.5 px-4 text-center border border-border/50">
         <p className="text-xs text-muted-foreground font-medium">Tu recuperación</p>
