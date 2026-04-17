@@ -4,6 +4,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { dniToEmail } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import logoImg from "@/assets/recovery-care-logo.png";
 
 type Mode = "login" | "register";
 
@@ -103,9 +104,12 @@ const Auth = () => {
         </button>
       )}
 
-      <h1 className="text-6xl font-extrabold text-primary leading-none text-center tracking-tight mt-6 mb-8">
-        Recovery<br />Care
-      </h1>
+      <img
+        src={logoImg}
+        alt="Recovery Care"
+        className="mx-auto mt-6 mb-8 w-56 max-w-full h-auto object-contain"
+      />
+      <h1 className="sr-only">Recovery Care</h1>
 
       <p className="text-sm font-semibold text-foreground/90 mb-5 uppercase tracking-wide">
         Introduce tu información personal
