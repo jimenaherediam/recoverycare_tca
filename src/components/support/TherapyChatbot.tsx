@@ -1,20 +1,20 @@
 import { useState, useRef, useEffect } from "react";
 import { ArrowLeft, Send, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
+import { streamChat, ApiError } from "@/lib/api";
 
 type Msg = { role: "user" | "assistant"; content: string };
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/therapy-chat`;
-
 const TherapyChatbot = ({ onBack }: { onBack: () => void }) => {
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Msg[]>([
-    {
-      role: "assistant",
-      content:
-        "Hola Andrea, soy tu asistente de apoyo. Estoy aquí para escucharte y acompañarte. ¿Cómo te sientes hoy?",
-    },
-  ]);
+  const { profile } = useAuth();
+  const firstName = profile?.nombre?.split(" ")[0] || "";
+  const greeting = firstName
+    ? `Hola ${firstName}, soy tu asistente de apoyo. Estoy aquí para escucharte y acompañarte. ¿Cómo te sientes hoy?`
+    : "Hola, soy tu asistente de apoyo. Estoy aquí para escucharte. ¿Cómo te sientes hoy?";
+
+  const [messages, setMessages] = useState<Msg[]>([{ role: "assistant", content: greeting }]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -33,72 +33,21 @@ const TherapyChatbot = ({ onBack }: { onBack: () => void }) => {
     setIsLoading(true);
 
     let assistantSoFar = "";
-    const upsertAssistant = (chunk: string) => {
-      assistantSoFar += chunk;
-      setMessages((prev) => {
-        const last = prev[prev.length - 1];
-        if (last?.role === "assistant" && last.content !== messages[messages.length - 1]?.content) {
-          return prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar } : m));
-        }
-        return [...prev, { role: "assistant", content: assistantSoFar }];
-      });
-    };
+    let assistantStarted = false;
 
     try {
-      const resp = await fetch(CHAT_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ messages: next }),
-      });
-
-      if (resp.status === 429) {
-        toast({ title: "Demasiadas solicitudes", description: "Prueba en unos segundos.", variant: "destructive" });
-        setIsLoading(false);
-        return;
-      }
-      if (resp.status === 402) {
-        toast({ title: "Sin créditos de IA", description: "Contacta con soporte.", variant: "destructive" });
-        setIsLoading(false);
-        return;
-      }
-      if (!resp.ok || !resp.body) throw new Error("Stream failed");
-
-      const reader = resp.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let done = false;
-
-      while (!done) {
-        const { done: d, value } = await reader.read();
-        if (d) break;
-        buffer += decoder.decode(value, { stream: true });
-        let nl: number;
-        while ((nl = buffer.indexOf("\n")) !== -1) {
-          let line = buffer.slice(0, nl);
-          buffer = buffer.slice(nl + 1);
-          if (line.endsWith("\r")) line = line.slice(0, -1);
-          if (!line.startsWith("data: ")) continue;
-          const json = line.slice(6).trim();
-          if (json === "[DONE]") {
-            done = true;
-            break;
-          }
-          try {
-            const parsed = JSON.parse(json);
-            const content = parsed.choices?.[0]?.delta?.content;
-            if (content) upsertAssistant(content);
-          } catch {
-            buffer = line + "\n" + buffer;
-            break;
-          }
+      for await (const chunk of streamChat(next)) {
+        assistantSoFar += chunk;
+        if (!assistantStarted) {
+          assistantStarted = true;
+          setMessages((prev) => [...prev, { role: "assistant", content: assistantSoFar }]);
+        } else {
+          setMessages((prev) => prev.map((m, i) => (i === prev.length - 1 ? { ...m, content: assistantSoFar } : m)));
         }
       }
     } catch (e) {
-      console.error(e);
-      toast({ title: "Error", description: "No se pudo conectar con el asistente.", variant: "destructive" });
+      const msg = e instanceof ApiError ? e.message : "No se pudo conectar con el asistente.";
+      toast({ title: "Error", description: msg, variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
