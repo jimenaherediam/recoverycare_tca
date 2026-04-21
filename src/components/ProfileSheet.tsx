@@ -1,35 +1,11 @@
-import { useState } from "react";
-import { User, MapPin, Lock, LogOut, Eye, EyeOff } from "lucide-react";
+import { User, MapPin, LogOut } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
 
 const ProfileSheet = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) => {
   const { profile, signOut } = useAuth();
-  const [changingPassword, setChangingPassword] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  const handleSavePassword = async () => {
-    if (newPassword.length < 6) {
-      toast({ title: "La contraseña debe tener al menos 6 caracteres", variant: "destructive" });
-      return;
-    }
-    setSaving(true);
-    const { error } = await supabase.auth.updateUser({ password: newPassword });
-    setSaving(false);
-    if (error) {
-      toast({ title: "Error al actualizar", description: error.message, variant: "destructive" });
-      return;
-    }
-    toast({ title: "Contraseña actualizada correctamente" });
-    setChangingPassword(false);
-    setNewPassword("");
-  };
 
   const handleLogout = async () => {
     await signOut();
@@ -77,37 +53,6 @@ const ProfileSheet = ({ open, onOpenChange }: { open: boolean; onOpenChange: (v:
               <p className="text-sm font-medium text-foreground">{localidad}</p>
             </div>
           </div>
-
-          {!changingPassword ? (
-            <Button variant="outline" className="w-full gap-2" onClick={() => setChangingPassword(true)}>
-              <Lock className="w-4 h-4" /> Cambiar contraseña
-            </Button>
-          ) : (
-            <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground">Nueva contraseña</p>
-              <div className="relative">
-                <Input
-                  type={showPassword ? "text" : "password"}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Mínimo 6 caracteres"
-                />
-                <button
-                  type="button"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-              <div className="flex gap-2">
-                <Button size="sm" onClick={handleSavePassword} disabled={saving} className="flex-1">
-                  {saving ? "Guardando..." : "Guardar"}
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => { setChangingPassword(false); setNewPassword(""); }} className="flex-1">Cancelar</Button>
-              </div>
-            </div>
-          )}
 
           <Button variant="destructive" className="w-full gap-2" onClick={handleLogout}>
             <LogOut className="w-4 h-4" /> Cerrar sesión

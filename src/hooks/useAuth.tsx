@@ -1,10 +1,8 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { api, auth as authStorage, ApiUser } from "@/lib/api";
 
 export type Profile = {
-  id: string;
-  user_id: string;
+  id: number;
   nombre: string;
   dni: string;
   localidad: string | null;
@@ -12,70 +10,73 @@ export type Profile = {
 };
 
 type AuthContextType = {
-  user: User | null;
-  session: Session | null;
+  user: ApiUser | null;
   profile: Profile | null;
   loading: boolean;
+  login: (dni: string, password: string) => Promise<void>;
+  register: (payload: { nombre: string; dni: string; password: string; codigo_profesional?: string; localidad?: string }) => Promise<void>;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// DNI -> synthetic email (so Supabase auth can use it)
-export const dniToEmail = (dni: string) =>
-  `${dni.trim().toUpperCase().replace(/[^A-Z0-9]/g, "")}@recoverycare.app`;
+const toProfile = (u: ApiUser | null): Profile | null =>
+  u ? {
+    id: u.id,
+    nombre: u.nombre,
+    dni: u.dni || "",
+    localidad: u.localidad ?? null,
+    codigo_profesional: u.codigo_profesional ?? null,
+  } : null;
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [user, setUser] = useState<ApiUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
-    setProfile(data as Profile | null);
-  };
-
   useEffect(() => {
-    // Set up listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
-      if (newSession?.user) {
-        // defer to avoid deadlocks
-        setTimeout(() => fetchProfile(newSession.user.id), 0);
-      } else {
-        setProfile(null);
-      }
-    });
-
-    // Then check existing session
-    supabase.auth.getSession().then(({ data: { session: existing } }) => {
-      setSession(existing);
-      setUser(existing?.user ?? null);
-      if (existing?.user) fetchProfile(existing.user.id);
+    const cached = authStorage.getUser();
+    if (cached && authStorage.getToken()) {
+      setUser(cached);
+      // refrescar en background; si falla (token caducado), cerrar sesión
+      api.me().then((u) => {
+        setUser(u);
+        authStorage.set(authStorage.getToken()!, u);
+      }).catch(() => {
+        authStorage.clear();
+        setUser(null);
+      }).finally(() => setLoading(false));
+    } else {
       setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    }
   }, []);
 
+  const login = async (dni: string, password: string) => {
+    const { access_token, user } = await api.login(dni, password);
+    authStorage.set(access_token, user);
+    setUser(user);
+  };
+
+  const register = async (payload: { nombre: string; dni: string; password: string; codigo_profesional?: string; localidad?: string }) => {
+    const { access_token, user } = await api.register(payload);
+    authStorage.set(access_token, user);
+    setUser(user);
+  };
+
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setProfile(null);
+    authStorage.clear();
+    setUser(null);
   };
 
   const refreshProfile = async () => {
-    if (user) await fetchProfile(user.id);
+    const u = await api.me();
+    setUser(u);
+    const t = authStorage.getToken();
+    if (t) authStorage.set(t, u);
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, profile, loading, signOut, refreshProfile }}>
+    <AuthContext.Provider value={{ user, profile: toProfile(user), loading, login, register, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

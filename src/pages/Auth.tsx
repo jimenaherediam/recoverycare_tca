@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Home, Eye, EyeOff } from "lucide-react";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
-import { dniToEmail } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import { ApiError } from "@/lib/api";
 import logoImg from "@/assets/recovery-care-logo.png";
 
 type Mode = "login" | "register";
@@ -25,6 +25,7 @@ const registerSchema = loginSchema.extend({
 });
 
 const Auth = () => {
+  const { login, register } = useAuth();
   const [mode, setMode] = useState<Mode>("login");
   const [nombre, setNombre] = useState("");
   const [dni, setDni] = useState("");
@@ -49,14 +50,7 @@ const Auth = () => {
           toast({ title: parsed.error.issues[0].message, variant: "destructive" });
           return;
         }
-        const { error } = await supabase.auth.signInWithPassword({
-          email: dniToEmail(dni),
-          password,
-        });
-        if (error) {
-          toast({ title: "Credenciales incorrectas", description: error.message, variant: "destructive" });
-          return;
-        }
+        await login(dni.trim().toUpperCase(), password);
         toast({ title: `Bienvenid@ ${nombre}` });
       } else {
         const parsed = registerSchema.safeParse({ nombre, dni, codigoProfesional, password, repeatPassword });
@@ -64,24 +58,17 @@ const Auth = () => {
           toast({ title: parsed.error.issues[0].message, variant: "destructive" });
           return;
         }
-        const { error } = await supabase.auth.signUp({
-          email: dniToEmail(dni),
+        await register({
+          nombre,
+          dni: dni.trim().toUpperCase(),
           password,
-          options: {
-            emailRedirectTo: `${window.location.origin}/`,
-            data: {
-              nombre,
-              dni: dni.trim().toUpperCase(),
-              codigo_profesional: codigoProfesional,
-            },
-          },
+          codigo_profesional: codigoProfesional,
         });
-        if (error) {
-          toast({ title: "Error al registrarse", description: error.message, variant: "destructive" });
-          return;
-        }
         toast({ title: "Cuenta creada correctamente" });
       }
+    } catch (e) {
+      const msg = e instanceof ApiError ? e.message : "Error inesperado";
+      toast({ title: mode === "login" ? "Credenciales incorrectas" : "Error al registrarse", description: msg, variant: "destructive" });
     } finally {
       setLoading(false);
     }
