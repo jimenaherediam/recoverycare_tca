@@ -210,8 +210,8 @@ const MealFlow = ({
 
         {step === "done" && (
           <div className="flex-1 flex flex-col items-center justify-center gap-5 text-center">
-            <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center">
-              <CheckCircle2 className="w-10 h-10 text-green-600" />
+            <div className="w-20 h-20 rounded-full bg-primary/15 flex items-center justify-center">
+              <CheckCircle2 className="w-10 h-10 text-primary" />
             </div>
             <h2 className="text-2xl font-bold text-foreground">¡Registrado!</h2>
             {serverResp?.resumen && (
@@ -223,7 +223,7 @@ const MealFlow = ({
             {serverResp?.alertas && serverResp.alertas.length > 0 && (
               <div className="w-full max-w-xs space-y-1.5">
                 {serverResp.alertas.map((a, i) => (
-                  <div key={i} className="text-[11px] rounded-lg bg-amber-100 text-amber-900 px-3 py-2 border border-amber-200">
+                  <div key={i} className="text-[11px] rounded-lg bg-destructive/10 text-destructive px-3 py-2 border border-destructive/20">
                     <b>{a.nivel}:</b> {a.descripcion}
                   </div>
                 ))}
