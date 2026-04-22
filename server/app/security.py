@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from typing import Optional
+import bcrypt
 from jose import jwt, JWTError
-from passlib.context import CryptContext
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -10,17 +10,22 @@ from .database import get_db
 from .models import Usuario, Paciente, Profesional, TipoUsuario
 
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 bearer = HTTPBearer(auto_error=False)
 
 
 def hash_password(p: str) -> str:
-    return pwd_context.hash(p)
+    # Truncar contraseña a 72 bytes máximo para bcrypt
+    password_bytes = p.encode('utf-8')[:72]
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    return hashed.decode('utf-8')
 
 
 def verify_password(p: str, hashed: str) -> bool:
     try:
-        return pwd_context.verify(p, hashed)
+        password_bytes = p.encode('utf-8')[:72]
+        hashed_bytes = hashed.encode('utf-8')
+        return bcrypt.checkpw(password_bytes, hashed_bytes)
     except Exception:
         return False
 

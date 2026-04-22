@@ -52,7 +52,7 @@ async def _llm_summary(payload: MealRecordIn) -> Optional[str]:
             "Eres un asistente clínico para TCA. Analiza brevemente este registro de comida del paciente "
             "y devuelve UN ÚNICO PÁRRAFO (máx 60 palabras) con tono empático y profesional. "
             "Detecta señales sutiles de ansiedad o evitación si las hay.\n\n"
-            f"Tipo: {payload.tipo_ingesta.value}\n"
+            f"Tipo: {payload.tipo_ingesta}\n"
             f"Menú: {payload.menu_descripcion or 'no indicado'}\n"
             f"Cantidad ingerida: {payload.cantidad_ingerida or 'no indicada'}\n"
             f"Acompañado: {'sí' if payload.acompanado else 'no'}\n"

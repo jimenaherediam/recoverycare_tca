@@ -1,5 +1,5 @@
 from datetime import datetime, date
-from typing import Any, Optional, List
+from typing import Any, Optional, List, Dict
 from pydantic import BaseModel, Field
 from .models import TipoIngesta, NivelAlerta, TipoAlerta, TipoPlan, Especialidad, AutorCuestionario
 
@@ -45,7 +45,7 @@ class PacienteOut(BaseModel):
 
 
 # --- Meals ---
-class MealRecordIn(BaseModel):
+"""class MealRecordIn(BaseModel):
     tipo_ingesta: TipoIngesta = TipoIngesta.OTRO
     menu_descripcion: Optional[str] = None
     cantidad_ingerida: Optional[str] = None
@@ -55,8 +55,17 @@ class MealRecordIn(BaseModel):
     camara_oculta: bool = False
     desconexion_camara: bool = False
     respuestas: dict = Field(default_factory=dict)  # JSON libre del cuestionario
-
-
+"""
+class MealRecordIn(BaseModel):
+    tipo_ingesta: Optional[str] = None
+    menu_descripcion: Optional[str] = None
+    cantidad_ingerida: Optional[str] = None
+    acompanado: bool
+    autor: str
+    nivel_ansiedad: Optional[int] = None
+    camara_oculta: Optional[bool] = False
+    desconexion_camara: Optional[bool] = False
+    respuestas: Dict[str, Any]
 class AlertaOut(BaseModel):
     id_alerta: int
     descripcion: Optional[str]

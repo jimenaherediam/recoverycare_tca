@@ -30,12 +30,15 @@ def _to_meal_out(c: Comida) -> MealRecordOut:
     )
 
 
+import json # ¡No olvides importarlo arriba!
+
 @router.post("/record", response_model=MealRecordOut)
 async def record_meal(
     payload: MealRecordIn,
     db: Session = Depends(get_db),
     paciente: Paciente = Depends(get_current_paciente),
 ):
+    # 1. Guardar la comida
     comida = Comida(
         menu_descripcion=payload.menu_descripcion,
         acompanado=payload.acompanado,
@@ -45,13 +48,17 @@ async def record_meal(
     db.add(comida)
     db.flush()
 
+    # 2. Guardar el Cuestionario convertido a String
     db.add(Cuestionario(
         comida_id=comida.id_comida,
         autor=payload.autor,
-        preguntas_respuestas=payload.respuestas,
+        # Convertimos el diccionario a un string JSON:
+        preguntas_respuestas=payload.respuestas, 
     ))
 
+    # 3. Lanzar el Análisis de IA
     await analyze_meal(db, comida, payload)
+    
     db.commit()
     db.refresh(comida)
     return _to_meal_out(comida)
