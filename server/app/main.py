@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .config import settings
 from .database import Base, engine
-from .routers import auth, meals, chat, appointments, history, plans, alerts
+from .routers import auth, meals, chat, appointments, history, plans, alerts, professional
 
 # Crea las tablas si no existen (en dev / SQLite). Comenta si importas tu .sql a MariaDB.
 Base.metadata.create_all(bind=engine)
@@ -31,3 +31,4 @@ app.include_router(appointments.router)
 app.include_router(history.router)
 app.include_router(plans.router)
 app.include_router(alerts.router)
+app.include_router(professional.router)
