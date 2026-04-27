@@ -68,6 +68,17 @@ services:
       timeout: 10s
       retries: 20
       start_period: 120s
+  frontend-profesionales:
+    build:
+      context: ./dashboard # Ruta a tu carpeta de Vue
+      dockerfile: Dockerfile
+      args:
+        # Apunta al nombre de tu contenedor backend en docker-compose
+        - VITE_API_URL=http://localhost:8000 
+    ports:
+      - "3000:80" # Podrás verlo en http://localhost:3000
+    depends_on:
+      - backend # Asegura que el servidor arranque primero
 networks:
   gentle-healer-network:
     driver: bridge
