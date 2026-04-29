@@ -94,12 +94,15 @@ def login_paciente(payload: LoginPaciente, db: Session = Depends(get_db)):
     return TokenOut(access_token=token, user=_user_dict(user))
 
 
+
 # ── Profesional: registro ─────────────────────────────────────────────────────
 @router.post("/professional/register", response_model=TokenOut)
 def register_profesional(payload: RegisterProfesional, db: Session = Depends(get_db)):
+    # 1. Comprobar si el email ya existe
     if db.query(Usuario).filter(Usuario.email == payload.email).first():
         raise HTTPException(status_code=409, detail="Email ya registrado")
-
+ 
+    # 2. Crear el Usuario general
     user = Usuario(
         nombre=payload.nombre,
         email=payload.email,
@@ -108,58 +111,56 @@ def register_profesional(payload: RegisterProfesional, db: Session = Depends(get
     )
     db.add(user)
     db.flush()
-
-    codigo = payload.codigo_profesional or f"PRO-{user.id_usuario}"
-
-    # Insertar en tabla profesional con raw SQL (esquema real tiene columnas extra)
+ 
+    # Generar un código único basado en el ID del usuario
+    codigo_profesional = f"PRO-{user.id_usuario}"
+ 
+    # 3. Crear el registro específico del Profesional
     db.execute(
-        text("""INSERT INTO profesional (id_profesional, nombre, email, password, especialidad, codigo_profesional)
-                VALUES (:id, :nombre, :email, :password, :esp, :codigo)"""),
-        {
-            "id": user.id_usuario,
-            "nombre": payload.nombre,
-            "email": payload.email,
-            "password": payload.password,
-            "esp": payload.especialidad,
-            "codigo": codigo,
-        }
+        text("""
+            INSERT INTO profesional (id_profesional, especialidad, codigo_profesional)
+            VALUES (:id, :especialidad, :codigo)
+        """),
+        {"id": user.id_usuario, "especialidad": payload.especialidad, "codigo": codigo_profesional}
     )
     db.commit()
     db.refresh(user)
-
+ 
+    # 4. Preparar respuesta con datos del profesional
+    extra = {
+        "especialidad": payload.especialidad,
+        "codigo_profesional": codigo_profesional
+    }
+ 
     token = create_access_token(user.id_usuario, user.tipo.value)
-    return TokenOut(
-        access_token=token,
-        user=_user_dict(user, {"especialidad": payload.especialidad, "codigo_profesional": codigo})
-    )
-
-
+    return TokenOut(access_token=token, user=_user_dict(user, extra=extra))
+ 
+ 
 # ── Profesional: login ────────────────────────────────────────────────────────
 @router.post("/professional/login", response_model=TokenOut)
 def login_profesional(payload: LoginProfesional, db: Session = Depends(get_db)):
-    user = db.query(Usuario).filter(
-        Usuario.email == payload.email,
-        Usuario.tipo == TipoUsuario.PROFESIONAL
-    ).first()
-
+    user = db.query(Usuario).filter(Usuario.email == payload.email, Usuario.tipo == TipoUsuario.PROFESIONAL).first()
+    
     if not user or not verify_password(payload.password, user.password):
-        raise HTTPException(status_code=401, detail="Email o contraseña incorrectos")
-
-    prof_row = db.execute(
-        text("SELECT especialidad, codigo_profesional FROM profesional WHERE id_profesional = :id"),
-        {"id": user.id_usuario}
-    ).fetchone()
-
+        raise HTTPException(status_code=401, detail="Credenciales incorrectas")
+    
+    prof = db.query(Profesional).filter(Profesional.id_profesional == user.id_usuario).first()
+    
+    # Validación del código profesional durante el login (si se proporciona)
+    if payload.codigo_profesional and prof and prof.codigo_profesional != payload.codigo_profesional:
+        raise HTTPException(status_code=401, detail="Código profesional incorrecto")
+    
+    # Preparar datos extra del profesional
+    extra = {}
+    if prof:
+        extra = {
+            "especialidad": prof.especialidad,
+            "codigo_profesional": prof.codigo_profesional
+        }
+    
     token = create_access_token(user.id_usuario, user.tipo.value)
-    return TokenOut(
-        access_token=token,
-        user=_user_dict(user, {
-            "especialidad": prof_row[0] if prof_row else None,
-            "codigo_profesional": prof_row[1] if prof_row else None,
-        })
-    )
-
-
+    return TokenOut(access_token=token, user=_user_dict(user, extra=extra))
+ 
 # ── Me ────────────────────────────────────────────────────────────────────────
 @router.get("/me")
 def me(user: Usuario = Depends(get_current_user), db: Session = Depends(get_db)):
