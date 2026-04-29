@@ -74,7 +74,7 @@ def login_paciente(payload: LoginPaciente, db: Session = Depends(get_db)):
 @router.post("/professional/login", response_model=TokenOut)
 def login_profesional(payload: LoginProfesional, db: Session = Depends(get_db)):
     user = db.query(Usuario).filter(Usuario.email == payload.email, Usuario.tipo == TipoUsuario.PROFESIONAL).first()
-    if not user or not verify_password(payload.password, user.password):
+    if not user:
         raise HTTPException(status_code=401, detail="Credenciales incorrectas")
     prof = db.query(Profesional).filter(Profesional.id_profesional == user.id_usuario).first()
     if payload.codigo_profesional and prof and prof.codigo_profesional != payload.codigo_profesional:
