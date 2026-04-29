@@ -22,12 +22,16 @@ def hash_password(p: str) -> str:
 
 
 def verify_password(p: str, hashed: str) -> bool:
-    try:
-        password_bytes = p.encode('utf-8')[:72]
-        hashed_bytes = hashed.encode('utf-8')
-        return bcrypt.checkpw(password_bytes, hashed_bytes)
-    except Exception:
-        return False
+    # Si es un hash bcrypt lo verifica con bcrypt
+    if hashed.startswith("$2b$") or hashed.startswith("$2a$"):
+        try:
+            password_bytes = p.encode('utf-8')[:72]
+            hashed_bytes = hashed.encode('utf-8')
+            return bcrypt.checkpw(password_bytes, hashed_bytes)
+        except Exception:
+            return False
+    # Si es texto plano lo compara directamente
+    return p == hashed
 
 
 def create_access_token(sub: int, tipo: str) -> str:
