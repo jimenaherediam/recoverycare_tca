@@ -24,8 +24,10 @@ http.interceptors.response.use(
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
 export const authAPI = {
-  loginProfessional: (email, password, codigo) =>
-    http.post('/auth/professional/login', { email, password, codigo_profesional: codigo }),
+  loginProfessional: (email, password) =>
+    http.post('/auth/professional/login', { email, password }),
+  registerProfessional: (data) =>
+    http.post('/auth/professional/register', data),
   me: () => http.get('/auth/me'),
 }
 

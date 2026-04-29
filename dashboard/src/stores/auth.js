@@ -3,34 +3,46 @@ import { ref, computed } from 'vue'
 import { authAPI } from '@/api'
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref(null)
-  const token = ref(localStorage.getItem('rc_token') || null)
+  const user    = ref(null)
+  const token   = ref(localStorage.getItem('rc_token') || null)
   const loading = ref(false)
-  const error = ref(null)
+  const error   = ref(null)
 
   const isAuthenticated = computed(() => !!token.value && !!user.value)
 
   const initials = computed(() => {
     if (!user.value?.nombre) return '?'
-    return user.value.nombre
-      .split(' ')
-      .slice(0, 2)
-      .map((n) => n[0])
-      .join('')
-      .toUpperCase()
+    return user.value.nombre.split(' ').slice(0, 2).map((n) => n[0]).join('').toUpperCase()
   })
 
-  async function login(email, password, codigo) {
+  async function login(email, password) {
     loading.value = true
     error.value = null
     try {
-      const { data } = await authAPI.loginProfessional(email, password, codigo)
+      const { data } = await authAPI.loginProfessional(email, password)
       token.value = data.access_token
       localStorage.setItem('rc_token', data.access_token)
-      await fetchMe()
+      user.value = data.user
       return true
     } catch (e) {
-      error.value = e.response?.data?.detail || 'Error al iniciar sesión'
+      error.value = e.response?.data?.detail || 'Email o contraseña incorrectos'
+      return false
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function register(form) {
+    loading.value = true
+    error.value = null
+    try {
+      const { data } = await authAPI.registerProfessional(form)
+      token.value = data.access_token
+      localStorage.setItem('rc_token', data.access_token)
+      user.value = data.user
+      return true
+    } catch (e) {
+      error.value = e.response?.data?.detail || 'Error al crear la cuenta'
       return false
     } finally {
       loading.value = false
@@ -52,5 +64,5 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.removeItem('rc_token')
   }
 
-  return { user, token, loading, error, isAuthenticated, initials, login, fetchMe, logout }
+  return { user, token, loading, error, isAuthenticated, initials, login, register, fetchMe, logout }
 })

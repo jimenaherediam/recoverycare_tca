@@ -35,6 +35,15 @@
 
       <!-- User info at bottom -->
       <template #append>
+        <!-- Código profesional destacado -->
+        <div v-if="auth.user?.codigo_profesional" class="code-banner mx-3 mb-3 pa-3 rounded-lg">
+          <div class="code-label mb-1">
+            <v-icon size="13" color="secondary" class="mr-1">mdi-identifier</v-icon>
+            Tu código de acceso
+          </div>
+          <div class="code-value">{{ auth.user.codigo_profesional }}</div>
+          <div class="code-hint">Compártelo con tus pacientes al registrarse</div>
+        </div>
         <v-divider class="sidebar-divider" />
         <div class="sidebar-user">
           <v-avatar color="secondary" size="38">
@@ -43,6 +52,10 @@
           <div class="ml-3 flex-1 overflow-hidden">
             <div class="user-name text-truncate">{{ auth.user?.nombre }}</div>
             <div class="user-role">{{ auth.user?.especialidad }}</div>
+            <div v-if="auth.user?.codigo_profesional" class="user-code mt-1">
+              <v-icon size="10" color="secondary" class="mr-1">mdi-identifier</v-icon>
+              {{ auth.user.codigo_profesional }}
+            </div>
           </div>
           <v-btn
             icon
@@ -173,6 +186,36 @@ onMounted(() => store.loadAll())
 .user-role {
   color: rgba(255,255,255,0.55);
   font-size: 11px;
+}
+.user-code {
+  color: #FDE68A;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.code-banner {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(245,158,11,0.4);
+}
+.code-label {
+  color: rgba(255,255,255,0.6);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  display: flex;
+  align-items: center;
+}
+.code-value {
+  color: #FDE68A;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+.code-hint {
+  color: rgba(255,255,255,0.45);
+  font-size: 10px;
+  margin-top: 4px;
+  line-height: 1.3;
 }
 .app-bar {
   border-bottom: 1px solid #EDE9FE !important;

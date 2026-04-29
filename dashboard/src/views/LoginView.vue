@@ -19,50 +19,78 @@
       <!-- Panel derecho -->
       <div class="login-right">
         <v-card class="login-card" elevation="0">
-          <div class="text-center mb-8">
-            <h2 class="login-title">Bienvenido</h2>
-            <p class="login-sub">Accede con tus credenciales profesionales</p>
-          </div>
+          <!-- Tabs -->
+          <v-tabs v-model="tab" color="primary" class="mb-6" grow>
+            <v-tab value="login">Iniciar sesión</v-tab>
+            <v-tab value="register">Registrarse</v-tab>
+          </v-tabs>
 
-          <v-form @submit.prevent="handleLogin" :disabled="auth.loading">
-            <v-text-field
-              v-model="form.email"
-              label="Correo electrónico"
-              prepend-inner-icon="mdi-email-outline"
-              type="email"
-              class="mb-3"
-            />
-            <v-text-field
-              v-model="form.password"
-              label="Contraseña"
-              prepend-inner-icon="mdi-lock-outline"
-              :append-inner-icon="showPwd ? 'mdi-eye-off' : 'mdi-eye'"
-              :type="showPwd ? 'text' : 'password'"
-              @click:append-inner="showPwd = !showPwd"
-              class="mb-3"
-            />
-            <v-text-field
-              v-model="form.codigo"
-              label="Código profesional (opcional)"
-              prepend-inner-icon="mdi-badge-account-outline"
-              class="mb-4"
-            />
+          <!-- LOGIN -->
+          <v-window v-model="tab">
+            <v-window-item value="login">
+              <v-form @submit.prevent="handleLogin" :disabled="loading">
+                <v-text-field
+                  v-model="loginForm.email"
+                  label="Correo electrónico"
+                  prepend-inner-icon="mdi-email-outline"
+                  type="email"
+                  class="mb-3"
+                />
+                <v-text-field
+                  v-model="loginForm.password"
+                  label="Contraseña"
+                  prepend-inner-icon="mdi-lock-outline"
+                  :append-inner-icon="showPwd ? 'mdi-eye-off' : 'mdi-eye'"
+                  :type="showPwd ? 'text' : 'password'"
+                  @click:append-inner="showPwd = !showPwd"
+                  class="mb-4"
+                />
+                <v-alert v-if="error" type="error" variant="tonal" class="mb-4" rounded="lg">{{ error }}</v-alert>
+                <v-btn type="submit" color="primary" block size="large" :loading="loading" class="action-btn">
+                  Entrar
+                </v-btn>
+              </v-form>
+            </v-window-item>
 
-            <v-alert v-if="auth.error" type="error" variant="tonal" class="mb-4" rounded="lg">
-              {{ auth.error }}
-            </v-alert>
-
-            <v-btn
-              type="submit"
-              color="primary"
-              block
-              size="large"
-              :loading="auth.loading"
-              class="login-btn"
-            >
-              Iniciar sesión
-            </v-btn>
-          </v-form>
+            <!-- REGISTRO -->
+            <v-window-item value="register">
+              <v-form @submit.prevent="handleRegister" :disabled="loading">
+                <v-text-field
+                  v-model="regForm.nombre"
+                  label="Nombre completo"
+                  prepend-inner-icon="mdi-account-outline"
+                  class="mb-3"
+                />
+                <v-text-field
+                  v-model="regForm.email"
+                  label="Correo electrónico"
+                  prepend-inner-icon="mdi-email-outline"
+                  type="email"
+                  class="mb-3"
+                />
+                <v-text-field
+                  v-model="regForm.password"
+                  label="Contraseña"
+                  prepend-inner-icon="mdi-lock-outline"
+                  :append-inner-icon="showPwd2 ? 'mdi-eye-off' : 'mdi-eye'"
+                  :type="showPwd2 ? 'text' : 'password'"
+                  @click:append-inner="showPwd2 = !showPwd2"
+                  class="mb-3"
+                />
+                <v-select
+                  v-model="regForm.especialidad"
+                  :items="especialidades"
+                  label="Especialidad"
+                  prepend-inner-icon="mdi-stethoscope"
+                  class="mb-4"
+                />
+                <v-alert v-if="error" type="error" variant="tonal" class="mb-4" rounded="lg">{{ error }}</v-alert>
+                <v-btn type="submit" color="secondary" block size="large" :loading="loading" class="action-btn">
+                  Crear cuenta
+                </v-btn>
+              </v-form>
+            </v-window-item>
+          </v-window>
         </v-card>
       </div>
     </div>
@@ -76,8 +104,17 @@ import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
 const router = useRouter()
-const showPwd = ref(false)
-const form = reactive({ email: '', password: '', codigo: '' })
+
+const tab      = ref('login')
+const showPwd  = ref(false)
+const showPwd2 = ref(false)
+const loading  = ref(false)
+const error    = ref(null)
+
+const loginForm = reactive({ email: '', password: '' })
+const regForm   = reactive({ nombre: '', email: '', password: '', especialidad: 'PSICÓLOGO' })
+
+const especialidades = ['PSIQUIATRA', 'PSICÓLOGO', 'NUTRICIONISTA']
 
 const features = [
   { icon: 'mdi-account-group',   text: 'Gestión centralizada de pacientes' },
@@ -87,8 +124,27 @@ const features = [
 ]
 
 async function handleLogin() {
-  const ok = await auth.login(form.email, form.password, form.codigo || undefined)
-  if (ok) router.push('/')
+  error.value = null
+  loading.value = true
+  try {
+    const ok = await auth.login(loginForm.email, loginForm.password)
+    if (ok) router.push('/')
+    else error.value = auth.error
+  } finally {
+    loading.value = false
+  }
+}
+
+async function handleRegister() {
+  error.value = null
+  loading.value = true
+  try {
+    const ok = await auth.register(regForm)
+    if (ok) router.push('/')
+    else error.value = auth.error
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -98,46 +154,24 @@ async function handleLogin() {
 .login-left {
   flex: 1;
   background: linear-gradient(145deg, #3B0764 0%, #6D28D9 55%, #7C3AED 100%);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  display: flex; flex-direction: column; justify-content: center;
   padding: 60px 56px;
 }
 .brand { margin-bottom: 56px; }
-.brand-title {
-  color: white;
-  font-size: 36px;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  margin-bottom: 8px;
-}
+.brand-title { color: white; font-size: 36px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 8px; }
 .brand-sub { color: rgba(255,255,255,0.65); font-size: 16px; }
 .features { display: flex; flex-direction: column; gap: 20px; }
-.feature-item {
-  display: flex;
-  align-items: center;
-  color: rgba(255,255,255,0.85);
-  font-size: 15px;
-}
+.feature-item { display: flex; align-items: center; color: rgba(255,255,255,0.85); font-size: 15px; }
 
 .login-right {
-  width: 480px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #F5F3FF;
-  padding: 40px 32px;
+  width: 480px; display: flex; align-items: center; justify-content: center;
+  background: #F5F3FF; padding: 40px 32px;
 }
 .login-card {
-  width: 100%;
-  max-width: 400px;
-  padding: 40px 36px;
-  border-radius: 20px !important;
-  background: white;
+  width: 100%; max-width: 400px;
+  padding: 32px 36px; border-radius: 20px !important; background: white;
 }
-.login-title { font-size: 26px; font-weight: 700; color: #4C1D95; }
-.login-sub { color: #6B7280; font-size: 14px; margin-top: 4px; }
-.login-btn { border-radius: 10px !important; height: 48px !important; font-size: 15px !important; }
+.action-btn { border-radius: 10px !important; height: 48px !important; font-size: 15px !important; }
 
 @media (max-width: 768px) {
   .login-left { display: none; }

@@ -40,7 +40,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   async function loadAll() {
     loading.value = true
     try {
-      await Promise.all([fetchStats(), fetchPatients(), fetchAllAlerts(), fetchAppointments()])
+      await Promise.allSettled([fetchStats(), fetchPatients(), fetchAllAlerts(), fetchAppointments()])
     } finally {
       loading.value = false
     }

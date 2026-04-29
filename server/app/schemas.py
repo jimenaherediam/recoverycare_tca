@@ -22,7 +22,7 @@ class LoginPaciente(BaseModel):
 
 class LoginProfesional(BaseModel):
     email: str
-    password: str
+    password: Optional[str] = None
     codigo_profesional: Optional[str] = None
 
 
