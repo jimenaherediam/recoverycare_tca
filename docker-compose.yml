@@ -25,9 +25,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-    depends_on:
-      ollama:
-        condition: service_healthy
+    
 
   # Frontend - React + Vite
   frontend:
@@ -44,30 +42,30 @@ services:
     env_file:
       - .env
     depends_on:
-      ollama:
+      backend:
         condition: service_healthy
     networks:
       - gentle-healer-network
     restart: unless-stopped
 
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    networks:
-      - gentle-healer-network
-    restart: unless-stopped
+  #ollama:
+   # image: ollama/ollama:latest
+    #container_name: ollama
+    #ports:
+     # - "11434:11434"
+    #volumes:
+     # - ollama_data:/root/.ollama
+    #networks:
+     # - gentle-healer-network
+    #restart: unless-stopped
     # El entrypoint que tienes es correcto para auto-descargar el modelo
-    entrypoint: ["/bin/sh", "-c", "ollama serve & sleep 15 && ollama pull qwen2.5:3b && tail -f /dev/null"]
-    healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:11434/api/tags || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 20
-      start_period: 120s
+    #entrypoint: ["/bin/sh", "-c", "ollama serve & sleep 15 && ollama pull qwen2.5:3b && tail -f /dev/null"]
+    #healthcheck:
+     # test: ["CMD-SHELL", "wget -qO- http://localhost:11434/api/tags || exit 1"]
+     # interval: 15s
+     # timeout: 10s
+      #retries: 20
+      #start_period: 120s
   frontend-profesionales:
     build:
       context: ./dashboard # Ruta a tu carpeta de Vue
@@ -87,5 +85,5 @@ volumes:
     driver: local
   backend_data:
     driver: local
-  ollama_data:
-    driver: local
+  #ollama_data:
+   # driver: local
