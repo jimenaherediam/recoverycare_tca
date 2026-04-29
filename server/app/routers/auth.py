@@ -15,7 +15,7 @@ class RegisterProfesional(BaseModel):
     nombre: str
     email: str
     password: str
-    especialidad: Optional[str] = "PROFESIONAL"
+    especialidad: Optional[str] = None
     codigo_profesional: Optional[str] = None
 
 

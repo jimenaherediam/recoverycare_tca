@@ -106,7 +106,7 @@ class Paciente(Base):
 class Profesional(Base):
     __tablename__ = "profesional"
     id_profesional = Column(Integer, ForeignKey("usuario.id_usuario", ondelete="CASCADE"), primary_key=True)
-    especialidad = Column(Enum(Especialidad), nullable=True)
+    especialidad = Column(String(50), nullable=True)
     codigo_profesional = Column(String(50), unique=True, nullable=True, index=True)
 
     usuario = relationship("Usuario", backref="profesional_data")
