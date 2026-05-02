@@ -3,12 +3,12 @@ import re
 from pathlib import Path
 
 def convert_mysql_to_sqlite(sql_file, db_path):
-    """Convierte un archivo SQL de MySQL a SQLite (Versión Final Definitiva)"""
+    """Convierte un archivo SQL de MySQL a SQLite """
 
     # 1. Borrar la base de datos vieja si existe para evitar "table already exists"
     if Path(db_path).exists():
         Path(db_path).unlink()
-        print("🗑️  Base de datos anterior eliminada. Creando una nueva...")
+        print("Base de datos anterior eliminada. Creando una nueva...")
 
     with open(sql_file, 'r', encoding='utf-8') as f:
         sql_content = f.read()
@@ -81,7 +81,7 @@ def convert_mysql_to_sqlite(sql_file, db_path):
 
     conn.commit()
     conn.close()
-    print(f"\n✅ Base de datos creada con éxito en: {db_path}")
+    print(f"\nBase de datos creada con éxito en: {db_path}")
 
 if __name__ == "__main__":
     sql_file = Path(__file__).parent / "recoverycare.sql"
