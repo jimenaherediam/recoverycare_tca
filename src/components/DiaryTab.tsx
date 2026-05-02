@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, UtensilsCrossed, Pill, Stethoscope, AlertTriangle } from "lucide-react";
+import { ArrowLeft, UtensilsCrossed, Stethoscope, AlertTriangle, Calendar } from "lucide-react";
 import type { MealRecord } from "./MealFlow";
 import { api, ApiError } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
@@ -10,6 +10,14 @@ type ServerHistory = {
   alertas: any[];
 };
 
+type Cita = {
+  id_cita: number;
+  fecha: string;
+  motivo: string | null;
+  id_paciente: number;
+  id_profesional: number;
+};
+
 const DiaryTab = ({
   onBack,
   mealRecords,
@@ -18,13 +26,17 @@ const DiaryTab = ({
   mealRecords: MealRecord[];
 }) => {
   const today = new Date();
+  const [viewMode, setViewMode] = useState<'diary' | 'appointments'>('diary');
   const [selectedDate, setSelectedDate] = useState(today.toISOString().split("T")[0]);
   const [currentMonth, setCurrentMonth] = useState(today.getMonth());
   const [currentYear, setCurrentYear] = useState(today.getFullYear());
   const [history, setHistory] = useState<ServerHistory | null>(null);
   const [loading, setLoading] = useState(false);
+  const [allCitas, setAllCitas] = useState<Cita[]>([]);
+  const [loadingCitas, setLoadingCitas] = useState(false);
 
   useEffect(() => {
+    if (viewMode !== 'diary') return;
     let cancel = false;
     setLoading(true);
     api.dayHistory(selectedDate)
@@ -37,7 +49,25 @@ const DiaryTab = ({
       })
       .finally(() => { if (!cancel) setLoading(false); });
     return () => { cancel = true; };
-  }, [selectedDate]);
+  }, [selectedDate, viewMode]);
+
+  useEffect(() => {
+    if (viewMode === 'appointments') {
+      setLoadingCitas(true);
+      api.appointments()
+        .then((data) => setAllCitas(data))
+        .catch((e) => {
+          const msg = e instanceof ApiError ? e.message : "Error cargando citas";
+          toast({ 
+            title: "No se pudieron cargar las citas", 
+            description: msg, 
+            variant: "destructive" 
+          });
+          setAllCitas([]);
+        })
+        .finally(() => setLoadingCitas(false));
+    }
+  }, [viewMode]);
 
   const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
   const firstDayOfWeek = new Date(currentYear, currentMonth, 1).getDay();
@@ -69,109 +99,210 @@ const DiaryTab = ({
   const citas = history?.citas ?? [];
   const alertas = history?.alertas ?? [];
 
+  const now = new Date();
+  const upcoming = allCitas.filter(c => new Date(c.fecha) >= now);
+  const past = allCitas.filter(c => new Date(c.fecha) < now);
+
   return (
     <div className="min-h-screen flex flex-col pb-20"
       style={{ background: "linear-gradient(180deg, hsl(45 100% 92%) 0%, hsl(320 50% 92%) 100%)" }}
     >
-      <div className="px-5 pt-6 pb-4 flex items-center gap-3">
-        <button onClick={onBack} className="w-9 h-9 rounded-full bg-card/70 flex items-center justify-center">
-          <ArrowLeft className="w-5 h-5 text-primary" />
-        </button>
-        <h1 className="text-xl font-bold text-foreground">Mi historial</h1>
-      </div>
-
-      <div className="mx-5 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 p-4 mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <button onClick={prevMonth} className="text-primary font-bold text-lg px-2">‹</button>
-          <span className="font-bold text-foreground">{monthNames[currentMonth]} {currentYear}</span>
-          <button onClick={nextMonth} className="text-primary font-bold text-lg px-2">›</button>
+      {/* HEADER CON PESTAÑAS */}
+      <div className="px-5 pt-6 pb-4">
+        <div className="flex items-center gap-3 mb-3">
+          <button onClick={onBack} className="w-9 h-9 rounded-full bg-card/70 flex items-center justify-center">
+            <ArrowLeft className="w-5 h-5 text-primary" />
+          </button>
+          <h1 className="text-xl font-bold text-foreground">
+            {viewMode === 'diary' ? 'Mi historial' : 'Mis citas'}
+          </h1>
         </div>
-        <div className="grid grid-cols-7 gap-1 text-center">
-          {dayNames.map((d) => (
-            <span key={d} className="text-[10px] font-semibold text-muted-foreground">{d}</span>
-          ))}
-          {Array.from({ length: adjustedFirstDay }).map((_, i) => (<div key={`empty-${i}`} />))}
-          {Array.from({ length: daysInMonth }).map((_, i) => {
-            const day = i + 1;
-            const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-            const isSelected = dateStr === selectedDate;
-            const isToday = dateStr === today.toISOString().split("T")[0];
-            const hasData = hasDataForDay(day);
-            return (
-              <button
-                key={day}
-                onClick={() => setSelectedDate(dateStr)}
-                className={`relative w-9 h-9 rounded-full text-xs font-medium flex items-center justify-center transition-colors ${
-                  isSelected ? "bg-primary text-primary-foreground"
-                  : isToday ? "bg-primary/20 text-primary font-bold"
-                  : "text-foreground hover:bg-muted/50"
-                }`}
-              >
-                {day}
-                {hasData && !isSelected && (<span className="absolute bottom-0.5 w-1.5 h-1.5 rounded-full bg-primary" />)}
-              </button>
-            );
-          })}
+        
+        {/* PESTAÑAS */}
+        <div className="flex gap-2">
+          <button
+            onClick={() => setViewMode('diary')}
+            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+              viewMode === 'diary'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-card/60 text-muted-foreground'
+            }`}
+          >
+            Historial
+          </button>
+          <button
+            onClick={() => setViewMode('appointments')}
+            className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-colors ${
+              viewMode === 'appointments'
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-card/60 text-muted-foreground'
+            }`}
+          >
+            Citas
+          </button>
         </div>
       </div>
 
-      <div className="px-5 space-y-3 flex-1">
-        <h3 className="text-sm font-bold text-foreground">
-          {selectedDate === today.toISOString().split("T")[0] ? "Hoy" : selectedDate}
-        </h3>
-
-        {loading && <p className="text-xs text-muted-foreground">Cargando…</p>}
-
-        {!loading && meals.length > 0 ? meals.map((m: any) => (
-          <div key={m.id_comida} className="rounded-xl bg-card/80 p-3 border border-border/40 space-y-1">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center">
-                <UtensilsCrossed className="w-4 h-4 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm text-card-foreground">{m.menu_descripcion || "Comida registrada"}</p>
-                <p className="text-xs text-muted-foreground">{m.acompanado ? "Acompañado/a" : "Solo/a"}</p>
-              </div>
+      {/* CONTENIDO */}
+      {viewMode === 'diary' ? (
+        <>
+          <div className="mx-5 rounded-2xl bg-card/80 backdrop-blur-sm border border-border/50 p-4 mb-4">
+            <div className="flex items-center justify-between mb-3">
+              <button onClick={prevMonth} className="text-primary font-bold text-lg px-2">‹</button>
+              <span className="font-bold text-foreground">{monthNames[currentMonth]} {currentYear}</span>
+              <button onClick={nextMonth} className="text-primary font-bold text-lg px-2">›</button>
             </div>
-            {m.analisis?.resumen && (
-              <p className="text-[11px] italic text-muted-foreground pl-12">"{m.analisis.resumen}"</p>
+            <div className="grid grid-cols-7 gap-1 text-center">
+              {dayNames.map((d) => (
+                <span key={d} className="text-[10px] font-semibold text-muted-foreground">{d}</span>
+              ))}
+              {Array.from({ length: adjustedFirstDay }).map((_, i) => (<div key={`empty-${i}`} />))}
+              {Array.from({ length: daysInMonth }).map((_, i) => {
+                const day = i + 1;
+                const dateStr = `${currentYear}-${String(currentMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                const isSelected = dateStr === selectedDate;
+                const isToday = dateStr === today.toISOString().split("T")[0];
+                const hasData = hasDataForDay(day);
+                return (
+                  <button
+                    key={day}
+                    onClick={() => setSelectedDate(dateStr)}
+                    className={`relative w-9 h-9 rounded-full text-xs font-medium flex items-center justify-center transition-colors ${
+                      isSelected ? "bg-primary text-primary-foreground"
+                      : isToday ? "bg-primary/20 text-primary font-bold"
+                      : "text-foreground hover:bg-muted/50"
+                    }`}
+                  >
+                    {day}
+                    {hasData && !isSelected && (<span className="absolute bottom-0.5 w-1.5 h-1.5 rounded-full bg-primary" />)}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="px-5 space-y-3 flex-1">
+            <h3 className="text-sm font-bold text-foreground">
+              {selectedDate === today.toISOString().split("T")[0] ? "Hoy" : selectedDate}
+            </h3>
+
+            {loading && <p className="text-xs text-muted-foreground">Cargando…</p>}
+
+            {!loading && meals.length > 0 ? meals.map((m: any) => (
+              <div key={m.id_comida} className="rounded-xl bg-card/80 p-3 border border-border/40 space-y-1">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center">
+                    <UtensilsCrossed className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-sm text-card-foreground">{m.menu_descripcion || "Comida registrada"}</p>
+                    <p className="text-xs text-muted-foreground">{m.acompanado ? "Acompañado/a" : "Solo/a"}</p>
+                  </div>
+                </div>
+                {m.analisis?.resumen && (
+                  <p className="text-[11px] italic text-muted-foreground pl-12">"{m.analisis.resumen}"</p>
+                )}
+              </div>
+            )) : !loading && (
+              <div className="flex items-center gap-3 rounded-xl bg-card/60 p-3 border border-border/30">
+                <UtensilsCrossed className="w-4 h-4 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">Sin comidas registradas</p>
+              </div>
             )}
-          </div>
-        )) : !loading && (
-          <div className="flex items-center gap-3 rounded-xl bg-card/60 p-3 border border-border/30">
-            <UtensilsCrossed className="w-4 h-4 text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">Sin comidas registradas</p>
-          </div>
-        )}
 
-        {citas.length > 0 ? citas.map((c: any) => (
-          <div key={c.id_cita} className="flex items-center gap-3 rounded-xl bg-card/80 p-3 border border-border/40">
-            <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center">
-              <Stethoscope className="w-4 h-4 text-primary" />
-            </div>
-            <p className="font-semibold text-sm text-card-foreground">
-              {new Date(c.fecha).toLocaleString("es-ES")} {c.motivo ? `· ${c.motivo}` : ""}
-            </p>
-          </div>
-        )) : !loading && (
-          <div className="flex items-center gap-3 rounded-xl bg-card/60 p-3 border border-border/30">
-            <Stethoscope className="w-4 h-4 text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">Sin citas médicas</p>
-          </div>
-        )}
+            {citas.length > 0 ? citas.map((c: any) => (
+              <div key={c.id_cita} className="flex items-center gap-3 rounded-xl bg-card/80 p-3 border border-border/40">
+                <div className="w-9 h-9 rounded-lg bg-primary/15 flex items-center justify-center">
+                  <Stethoscope className="w-4 h-4 text-primary" />
+                </div>
+                <p className="font-semibold text-sm text-card-foreground">
+                  {new Date(c.fecha).toLocaleString("es-ES")} {c.motivo ? `· ${c.motivo}` : ""}
+                </p>
+              </div>
+            )) : !loading && (
+              <div className="flex items-center gap-3 rounded-xl bg-card/60 p-3 border border-border/30">
+                <Stethoscope className="w-4 h-4 text-muted-foreground" />
+                <p className="text-xs text-muted-foreground">Sin citas médicas</p>
+              </div>
+            )}
 
-        {alertas.length > 0 && alertas.map((a: any) => (
-          <div key={a.id_alerta} className="flex items-center gap-3 rounded-xl bg-destructive/5 p-3 border border-destructive/20">
-            <div className="w-9 h-9 rounded-lg bg-destructive/15 flex items-center justify-center">
-              <AlertTriangle className="w-4 h-4 text-destructive" />
-            </div>
-            <div>
-              <p className="font-semibold text-xs text-foreground">{a.nivel} · {a.tipo_alerta}</p>
-              <p className="text-[11px] text-muted-foreground">{a.descripcion}</p>
-            </div>
+            {alertas.length > 0 && alertas.map((a: any) => (
+              <div key={a.id_alerta} className="flex items-center gap-3 rounded-xl bg-destructive/5 p-3 border border-destructive/20">
+                <div className="w-9 h-9 rounded-lg bg-destructive/15 flex items-center justify-center">
+                  <AlertTriangle className="w-4 h-4 text-destructive" />
+                </div>
+                <div>
+                  <p className="font-semibold text-xs text-foreground">{a.nivel} · {a.tipo_alerta}</p>
+                  <p className="text-[11px] text-muted-foreground">{a.descripcion}</p>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      ) : (
+        <div className="px-5 space-y-4 flex-1">
+          {loadingCitas && <p className="text-xs text-muted-foreground">Cargando…</p>}
+
+          {!loadingCitas && upcoming.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-bold text-foreground">Próximas citas</h3>
+              {upcoming.map((c) => (
+                <div key={c.id_cita} className="rounded-xl bg-card/80 p-4 border border-border/40">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-lg bg-primary/15 flex items-center justify-center">
+                      <Calendar className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-sm text-card-foreground">
+                        {new Date(c.fecha).toLocaleDateString("es-ES", { 
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {new Date(c.fecha).toLocaleTimeString("es-ES", { 
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </p>
+                      {c.motivo && (
+                        <p className="text-sm text-foreground mt-2">{c.motivo}</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!loadingCitas && past.length > 0 && (
+            <div className="space-y-2">
+              <h3 className="text-sm font-bold text-foreground">Citas pasadas</h3>
+              {past.slice(0, 5).map((c) => (
+                <div key={c.id_cita} className="rounded-xl bg-card/60 p-3 border border-border/30 opacity-60">
+                  <div className="flex items-center gap-3">
+                    <Stethoscope className="w-4 h-4 text-muted-foreground" />
+                    <div className="flex-1">
+                      <p className="text-xs text-muted-foreground">
+                        {new Date(c.fecha).toLocaleDateString("es-ES")} · {c.motivo || "Sin motivo"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!loadingCitas && allCitas.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <Calendar className="w-12 h-12 text-muted-foreground/40 mb-3" />
+              <p className="text-sm text-muted-foreground">No tienes citas programadas</p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
