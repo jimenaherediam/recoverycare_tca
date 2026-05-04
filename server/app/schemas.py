@@ -45,17 +45,7 @@ class PacienteOut(BaseModel):
 
 
 # --- Meals ---
-"""class MealRecordIn(BaseModel):
-    tipo_ingesta: TipoIngesta = TipoIngesta.OTRO
-    menu_descripcion: Optional[str] = None
-    cantidad_ingerida: Optional[str] = None
-    acompanado: bool = False
-    autor: AutorCuestionario = AutorCuestionario.PACIENTE
-    nivel_ansiedad: Optional[float] = None  # 0..10 self-report (opcional)
-    camara_oculta: bool = False
-    desconexion_camara: bool = False
-    respuestas: dict = Field(default_factory=dict)  # JSON libre del cuestionario
-"""
+
 class MealRecordIn(BaseModel):
     tipo_ingesta: Optional[str] = None
     menu_descripcion: Optional[str] = None

@@ -6,8 +6,8 @@ class Settings(BaseSettings):
     JWT_SECRET: str = "dev-secret-change-me"
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRE_MINUTES: int = 60 * 24 * 7
-    OLLAMA_URL: str = "http://host.docker.internal:11434"
-    OLLAMA_MODEL: str = "llama3.1"
+    OLLAMA_URL: str = "http://eva.gbt.tfo.upm.es:11434"
+    OLLAMA_MODEL: str = "qwen3:14b"
     ENABLE_LLM_ANALYSIS: bool = True
     CORS_ORIGINS: str = "*"
 
