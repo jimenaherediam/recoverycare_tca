@@ -199,9 +199,9 @@ const DiaryTab = ({
                     <p className="text-xs text-muted-foreground">{m.acompanado ? "Acompañado/a" : "Solo/a"}</p>
                   </div>
                 </div>
-                {m.analisis?.resumen && (
+                {/*{m.analisis?.resumen && (
                   <p className="text-[11px] italic text-muted-foreground pl-12">"{m.analisis.resumen}"</p>
-                )}
+                )}*/}
               </div>
             )) : !loading && (
               <div className="flex items-center gap-3 rounded-xl bg-card/60 p-3 border border-border/30">

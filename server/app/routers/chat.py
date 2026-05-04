@@ -47,7 +47,6 @@ async def chat(
         try:
             async for chunk in stream_chat(msgs, system=system):
                 full.append(chunk)
-                # SSE compatible con OpenAI delta format
                 obj = {"choices": [{"delta": {"content": chunk}}]}
                 yield f"data: {json.dumps(obj, ensure_ascii=False)}\n\n"
                 await asyncio.sleep(0)

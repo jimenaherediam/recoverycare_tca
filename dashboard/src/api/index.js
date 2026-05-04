@@ -46,6 +46,7 @@ export const professionalAPI = {
   patientAppointments: (id) => http.get(`/professional/patients/${id}/appointments`),
   appointments: () => http.get('/professional/appointments'),
   createAppointment: (data) => http.post('/professional/appointments', data),
+  patientChatHistory: (id) => http.get(`/professional/patients/${id}/chat`),
 }
 
 // ── Alerts ────────────────────────────────────────────────────────────────────

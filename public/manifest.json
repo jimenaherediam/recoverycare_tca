@@ -1,7 +1,7 @@
 {
   "name": "RecoveryCare - Seguimiento del Paciente",
   "short_name": "RecoveryCare",
-  "description": "Aplicación de seguimiento postoperatorio para pacientes",
+  "description": "Aplicación de seguimiento para pacientes con TCA",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#F0FDFA",

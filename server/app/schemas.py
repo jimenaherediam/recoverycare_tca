@@ -101,6 +101,7 @@ class ChatIn(BaseModel):
 
 class ChatHistoryItem(BaseModel):
     id_chatbot: int
+    id_paciente: int
     role: str
     mensaje: str
     fecha: datetime

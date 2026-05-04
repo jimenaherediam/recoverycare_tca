@@ -2,6 +2,7 @@
 from datetime import datetime, date, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+
 from sqlalchemy import func, desc
 from sqlalchemy.orm import Session
 from typing import Optional
@@ -9,9 +10,10 @@ from typing import Optional
 from ..database import get_db
 from ..models import (
     Alerta, AnalisisIA, Cita, Comida, NivelAlerta,
-    PacienteProfesional, Paciente, PlanPersonalizado, Profesional, TipoPlan, Usuario,
+    PacienteProfesional, Paciente, PlanPersonalizado, Profesional, TipoPlan, Usuario, Chatbot,
 )
 from ..security import get_current_profesional
+from ..schemas import ChatHistoryItem
 
 router = APIRouter(prefix="/professional", tags=["professional"])
 
@@ -404,3 +406,28 @@ def list_appointments(
         }
         for c, u in citas
     ]
+
+@router.get("/patients/{id_paciente}/chat", response_model=list[ChatHistoryItem])
+def get_patient_chat_history(
+    id_paciente: int,
+    db: Session = Depends(get_db),
+    profesional: Profesional = Depends(get_current_profesional),
+):
+    # 1. Verificar relación Paciente-Profesional
+    vinculo = db.query(PacienteProfesional).filter(
+        PacienteProfesional.profesional_id == profesional.id_profesional,
+        PacienteProfesional.paciente_id == id_paciente
+    ).first()
+
+    if not vinculo:
+        raise HTTPException(status_code=403, detail="No autorizado para ver este paciente")
+
+    # 2. Devolver mensajes ordenados
+    mensajes = (
+        db.query(Chatbot)
+        .filter(Chatbot.id_paciente == id_paciente)
+        .order_by(Chatbot.fecha.asc())
+        .all()
+    )
+    
+    return mensajes

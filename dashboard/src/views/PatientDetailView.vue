@@ -41,6 +41,7 @@
         <v-tab value="alerts">Alertas ({{ alerts.length }})</v-tab>
         <v-tab value="plans">Planes</v-tab>
         <v-tab value="appointments">Citas</v-tab>
+        <v-tab value ="chat">Chat IA</v-tab>
       </v-tabs>
 
       <v-window v-model="tab">
@@ -198,8 +199,42 @@
             </v-card-text>
           </v-card>
         </v-window-item>
+      
+      <!-- CHAT -->
+      
+      <v-window-item value="chat">
+        <v-row>
+          <v-col cols="12">
+            <v-card elevation="0" class="section-card">
+              <v-card-text>
+                <div v-if="loadingChat" class="text-center py-4">
+                  <v-progress-circular indeterminate color="primary" size="24" />
+                </div>
+                <div v-else-if="!chatHistory.length" class="empty-state py-8">
+                  El paciente no ha interactuado con el asistente aún.
+                </div>
+                <div v-else class="chat-container">
+                  <div 
+                    v-for="msg in chatHistory" 
+                    :key="msg.id_chatbot" 
+                    class="chat-message"
+                    :class="{ 'message-user': msg.role === 'user', 'message-ia': msg.role === 'assistant' }"
+                  >
+                    <div class="message-meta">
+                      <strong>{{ msg.role === 'user' ? patient.nombre : 'Asistente IA' }}</strong>
+                      <span class="ml-2 text-caption text-grey">{{ formatDate(msg.fecha) }}</span>
+                    </div>
+                    <div class="message-content">{{ msg.mensaje }}</div>
+                  </div>
+                </div>
+              </v-card-text>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-window-item>
       </v-window>
     </template>
+    
 
     <!-- Dialog: nuevo plan -->
     <v-dialog v-model="showPlanDialog" max-width="520">
@@ -257,6 +292,8 @@ const evolution   = ref([])
 const alerts      = ref([])
 const plans       = ref([])
 const appointments = ref([])
+const chatHistory = ref([])
+const loadingChat = ref(false)
 const showPlanDialog = ref(false)
 const showApptDialog = ref(false)
 
@@ -335,6 +372,16 @@ onMounted(async () => {
     alerts.value      = al.data
     plans.value       = pl.data
     appointments.value = ap.data
+
+    loadingChat.value = true;
+    try {
+        const chatRes = await professionalAPI.patientChatHistory(patientId.value);
+        chatHistory.value = chatRes.data;
+    } catch (e) {
+        console.error("Error cargando el chat", e);
+    } finally {
+        loadingChat.value = false;
+    }
   } finally { loading.value = false }
 })
 </script>
@@ -385,4 +432,11 @@ onMounted(async () => {
 .stat-val { font-size:15px; font-weight:700; }
 
 .empty-state { text-align:center; color:#9CA3AF; font-size:14px; }
+
+.chat-container { display: flex; flex-direction: column; gap: 16px; }
+.chat-message { padding: 12px; border-radius: 8px; max-width: 85%; }
+.message-user { align-self: flex-end; background-color: #EDE9FE; border-bottom-right-radius: 0; }
+.message-ia { align-self: flex-start; background-color: #F3F4F6; border-bottom-left-radius: 0; }
+.message-meta { margin-bottom: 4px; font-size: 13px; }
+.message-content { font-size: 14px; color: #374151; white-space: pre-wrap; }
 </style>

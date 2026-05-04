@@ -214,9 +214,9 @@ const MealFlow = ({
               <CheckCircle2 className="w-10 h-10 text-primary" />
             </div>
             <h2 className="text-2xl font-bold text-foreground">¡Registrado!</h2>
-            {serverResp?.resumen && (
+            {/*{serverResp?.resumen && (
               <p className="text-sm text-foreground/80 max-w-xs italic">"{serverResp.resumen}"</p>
-            )}
+            )}*/}
             {typeof serverResp?.nivel_ansiedad === "number" && (
               <p className="text-xs text-muted-foreground">Nivel de ansiedad estimado: <b>{serverResp.nivel_ansiedad.toFixed(1)}/10</b></p>
             )}
