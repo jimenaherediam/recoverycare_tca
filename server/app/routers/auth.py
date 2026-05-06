@@ -26,6 +26,7 @@ def _user_dict(u: Usuario, extra: dict = {}) -> dict:
         "email": u.email,
         "dni": u.dni,
         "tipo": u.tipo.value if hasattr(u.tipo, "value") else u.tipo,
+        "created_at": u.created_at.isoformat() if u.created_at else None,
     }
     base.update(extra)
     return base

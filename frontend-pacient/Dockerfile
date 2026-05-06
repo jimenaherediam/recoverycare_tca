@@ -2,16 +2,11 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
 
-# Instalamos Bun
-RUN npm install -g bun
+# Copiamos archivos de dependencias
+COPY package.json package-lock.json* ./
 
-# Copiamos TODOS los archivos de dependencias posibles
-#COPY package.json bun.lockb* package-lock.json* ./
-COPY package.json  package-lock.json* ./
-# Instalamos dependencias usando Bun
-#RUN bun install
+# Instalamos dependencias
 RUN npm install
-
 
 # Copiamos el resto del código
 COPY . .
@@ -23,11 +18,8 @@ ARG VITE_SUPABASE_ANON_KEY
 
 # Los convertimos en ENVs para que Vite los intercepte al compilar
 ENV VITE_API_URL=$VITE_API_URL
-#ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
-#ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
 
 # Construimos la app
-#RUN bun run build
 RUN npm run build
 
 # Stage 2: Production

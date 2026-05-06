@@ -14,6 +14,16 @@ const HomeTab = ({ onNavigate }: { onNavigate: (tab: TabId) => void }) => {
   const { profile } = useAuth();
   const firstName = profile?.nombre?.split(" ")[0] || "";
 
+  // Calcular días desde el registro
+  const daysRegistered = (() => {
+    if (!profile?.created_at) return 1;
+    const createdDate = new Date(profile.created_at);
+    const today = new Date();
+    const diffTime = today.getTime() - createdDate.getTime();
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    return Math.max(1, diffDays);
+  })();
+
   return (
     <div className="h-screen flex flex-col items-center px-6 pt-6 pb-20 overflow-hidden"
       style={{
@@ -41,8 +51,7 @@ const HomeTab = ({ onNavigate }: { onNavigate: (tab: TabId) => void }) => {
       <div className="mt-3 mb-3 w-full rounded-2xl bg-card/60 backdrop-blur-sm py-2.5 px-4 text-center border border-border/50">
         <p className="text-xs text-muted-foreground font-medium">Tu recuperación</p>
         <div className="flex items-center justify-center gap-2 mt-1">
-          <span className="text-3xl font-extrabold text-primary">Día 5</span>
-          <span className="text-muted-foreground text-xs">de 14</span>
+          <span className="text-3xl font-extrabold text-primary">Día {daysRegistered}</span>
         </div>
       </div>
 

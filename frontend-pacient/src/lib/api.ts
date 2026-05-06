@@ -15,6 +15,7 @@ export type ApiUser = {
   edad?: number | null;
   localidad?: string | null;
   codigo_profesional?: string | null;
+  created_at?: string | null;
 };
 
 export const auth = {

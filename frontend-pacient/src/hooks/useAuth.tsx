@@ -7,6 +7,7 @@ export type Profile = {
   dni: string;
   localidad: string | null;
   codigo_profesional: string | null;
+  created_at: string | null;
 };
 
 type AuthContextType = {
@@ -28,6 +29,7 @@ const toProfile = (u: ApiUser | null): Profile | null =>
     dni: u.dni || "",
     localidad: u.localidad ?? null,
     codigo_profesional: u.codigo_profesional ?? null,
+    created_at: u.created_at ?? null,
   } : null;
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
