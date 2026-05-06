@@ -13,8 +13,6 @@ COPY . .
 
 # Declaramos los ARGs que vienen del docker-compose.yml
 ARG VITE_API_URL
-ARG VITE_SUPABASE_URL
-ARG VITE_SUPABASE_ANON_KEY
 
 # Los convertimos en ENVs para que Vite los intercepte al compilar
 ENV VITE_API_URL=$VITE_API_URL

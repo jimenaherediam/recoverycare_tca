@@ -30,7 +30,7 @@ def _to_meal_out(c: Comida) -> MealRecordOut:
     )
 
 
-import json # ¡No olvides importarlo arriba!
+import json
 
 @router.post("/record", response_model=MealRecordOut)
 async def record_meal(
