@@ -15,19 +15,10 @@
         <v-card-text style="position:relative; padding-top:28px">
           <div class="d-flex align-center gap-4 flex-wrap">
             <v-avatar color="white" size="72" style="border:3px solid #EDE9FE">
-              <span class="text-h5 font-weight-bold" style="color:#7C3AED">{{ initials(patient.nombre) }}</span>
+              <span class="text-h5 font-weight-bold" style="color: #7C3AED">{{ initials(patient.nombre) }}</span>
             </v-avatar>
             <div class="flex-1">
               <h2 class="text-h5 font-weight-bold text-white mb-1">{{ patient.nombre }}</h2>
-              <div class="d-flex gap-3 flex-wrap">
-                <span class="patient-badge"><v-icon size="13">mdi-cake-variant</v-icon> {{ patient.edad }} años</span>
-                <span class="patient-badge"><v-icon size="13">mdi-map-marker</v-icon> {{ patient.localidad || 'Sin localidad' }}</span>
-                <span v-if="patient.fecha_diagnostico" class="patient-badge">
-                  <v-icon size="13">mdi-calendar-check</v-icon>
-                  Diag.: {{ formatShort(patient.fecha_diagnostico) }}
-                </span>
-                <v-chip v-if="patient.estancia_hospitalaria" size="x-small" color="info" variant="flat">Hospitalizado</v-chip>
-              </div>
             </div>
             <AlertChip :nivel="overallStatus" />
           </div>
@@ -388,11 +379,11 @@ onMounted(async () => {
 
 <style scoped>
 .header-gradient {
-  height: 80px;
-  background: linear-gradient(120deg,#4C1D95 0%,#7C3AED 60%,#C084FC 100%);
+  height: 116px;
+  background: linear-gradient(120deg, #4C1D95 0%, #7C3AED 60%, #C084FC 100%);
   position: absolute; top: 0; left: 0; right: 0;
 }
-.patient-badge { color:rgba(255,255,255,.85); font-size:12px; display:flex; align-items:center; gap:4px; }
+
 .section-card { border:1px solid #EDE9FE; }
 .section-title { font-size:14px !important; font-weight:700; color:#1F2937; padding:14px 16px 10px; }
 
