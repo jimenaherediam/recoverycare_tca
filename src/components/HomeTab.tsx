@@ -48,7 +48,7 @@ const HomeTab = ({ onNavigate }: { onNavigate: (tab: TabId) => void }) => {
 
       <div className="w-full space-y-2.5 flex-shrink-0">
         <ActionButton icon={UtensilsCrossed} label="Voy a comer" onClick={() => onNavigate("meal-flow")} />
-        <ActionButton icon={BookOpen} label="Mi historial" onClick={() => onNavigate("diary")} />
+        <ActionButton icon={BookOpen} label="Diario" onClick={() => onNavigate("diary")} />
         <ActionButton icon={HeartHandshake} label="Ir a soporte terapéutico" onClick={() => onNavigate("support")} />
       </div>
 

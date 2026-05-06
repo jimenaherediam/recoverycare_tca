@@ -24,6 +24,7 @@ def _user_dict(u: Usuario, extra: dict = {}) -> dict:
         "id": u.id_usuario,
         "nombre": u.nombre,
         "email": u.email,
+        "dni": u.dni,
         "tipo": u.tipo.value if hasattr(u.tipo, "value") else u.tipo,
     }
     base.update(extra)
