@@ -1,4 +1,4 @@
-"""Ollama client: streaming chat + one-shot generation."""
+
 import json
 import httpx
 from typing import AsyncIterator, List, Dict
@@ -6,7 +6,6 @@ from ..config import settings
 
 
 async def generate_text(prompt: str, system: str | None = None) -> str:
-    """One-shot non-streaming generation."""
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
@@ -23,7 +22,6 @@ async def generate_text(prompt: str, system: str | None = None) -> str:
 
 
 async def stream_chat(messages: List[Dict[str, str]], system: str | None = None) -> AsyncIterator[str]:
-    """Yields assistant content chunks (text), already extracted from Ollama JSON lines."""
     full_messages = []
     if system:
         full_messages.append({"role": "system", "content": system})

@@ -5,7 +5,7 @@ WORKDIR /app
 # Copiar archivos de configuración de dependencias
 COPY package*.json ./
 
-# Instalar dependencias (usamos --include=dev porque Vite es una devDependency)
+# Instalar dependencias 
 RUN npm install
 
 # Copiar el resto del código (Asegúrate de que sea solo un punto)

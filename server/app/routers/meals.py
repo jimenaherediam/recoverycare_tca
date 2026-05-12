@@ -7,6 +7,7 @@ from ..models import Comida, Cuestionario, Paciente, AnalisisIA, Alerta
 from ..schemas import MealRecordIn, MealRecordOut, AnalisisOut, AlertaOut
 from ..security import get_current_paciente
 from ..services.analysis import analyze_meal
+import json
 
 router = APIRouter(prefix="/meals", tags=["meals"])
 
@@ -30,7 +31,7 @@ def _to_meal_out(c: Comida) -> MealRecordOut:
     )
 
 
-import json
+
 
 @router.post("/record", response_model=MealRecordOut)
 async def record_meal(

@@ -1,4 +1,4 @@
-"""SQLAlchemy ORM mirroring the recoverycare MariaDB schema (with small pragmatic adjustments)."""
+
 from datetime import datetime, date
 from sqlalchemy import (
     Column, Integer, String, Text, Boolean, DateTime, Date, Float, ForeignKey, Enum, JSON

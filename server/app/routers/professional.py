@@ -1,4 +1,3 @@
-"""Endpoints exclusivos para profesionales: listado y detalle de pacientes, evolución, planes."""
 from datetime import datetime, date, timedelta
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -27,7 +26,7 @@ def _verify_patient_belongs(profesional_id: int, patient_id: int, db: Session):
         raise HTTPException(status_code=404, detail="Paciente no encontrado")
 
 
-# ── Estadísticas globales del profesional ────────────────────────────────────
+#  Estadísticas globales del profesional 
 @router.get("/stats")
 def get_stats(
     profesional: Profesional = Depends(get_current_profesional),
@@ -72,7 +71,7 @@ def get_stats(
     }
 
 
-# ── Lista de pacientes con resumen ───────────────────────────────────────────
+#  Lista de pacientes con resumen 
 @router.get("/patients")
 def list_patients(
     profesional: Profesional = Depends(get_current_profesional),
@@ -135,7 +134,7 @@ def list_patients(
     return result
 
 
-# ── Detalle de un paciente ────────────────────────────────────────────────────
+#  Detalle de un paciente 
 @router.get("/patients/{patient_id}")
 def get_patient(
     patient_id: int,
@@ -200,7 +199,7 @@ def get_patient(
     }
 
 
-# ── Evolución (datos para gráficas) ─────────────────────────────────────────
+#  Evolución (datos para gráficas) 
 @router.get("/patients/{patient_id}/evolution")
 def get_evolution(
     patient_id: int,
@@ -231,7 +230,7 @@ def get_evolution(
     ]
 
 
-# ── Alertas de un paciente ───────────────────────────────────────────────────
+#  Alertas de un paciente 
 @router.get("/patients/{patient_id}/alerts")
 def get_patient_alerts(
     patient_id: int,
@@ -263,7 +262,7 @@ def get_patient_alerts(
     ]
 
 
-# ── Planes de un paciente ────────────────────────────────────────────────────
+#  Planes de un paciente 
 @router.get("/patients/{patient_id}/plans")
 def get_patient_plans(
     patient_id: int,
@@ -340,7 +339,7 @@ def toggle_plan(
     return {"activo": plan.activo}
 
 
-# ── Citas de un paciente ─────────────────────────────────────────────────────
+#  Citas de un paciente 
 @router.get("/patients/{patient_id}/appointments")
 def get_patient_appointments(
     patient_id: int,

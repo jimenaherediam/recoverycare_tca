@@ -32,7 +32,7 @@ def _user_dict(u: Usuario, extra: dict = {}) -> dict:
     return base
 
 
-# ── Paciente: registro ────────────────────────────────────────────────────────
+#  Paciente: registro 
 @router.post("/register", response_model=TokenOut)
 def register_paciente(payload: RegisterPaciente, db: Session = Depends(get_db)):
     if payload.dni and db.query(Usuario).filter(Usuario.dni == payload.dni).first():
@@ -85,7 +85,7 @@ def register_paciente(payload: RegisterPaciente, db: Session = Depends(get_db)):
     return TokenOut(access_token=token, user=_user_dict(user))
 
 
-# ── Paciente: login ───────────────────────────────────────────────────────────
+#  Paciente: login
 @router.post("/login", response_model=TokenOut)
 def login_paciente(payload: LoginPaciente, db: Session = Depends(get_db)):
     dni = payload.dni.strip().upper()
@@ -97,7 +97,7 @@ def login_paciente(payload: LoginPaciente, db: Session = Depends(get_db)):
 
 
 
-# ── Profesional: registro ─────────────────────────────────────────────────────
+#  Profesional: registro 
 @router.post("/professional/register", response_model=TokenOut)
 def register_profesional(payload: RegisterProfesional, db: Session = Depends(get_db)):
     # 1. Comprobar si el email ya existe
@@ -138,7 +138,7 @@ def register_profesional(payload: RegisterProfesional, db: Session = Depends(get
     return TokenOut(access_token=token, user=_user_dict(user, extra=extra))
  
  
-# ── Profesional: login ────────────────────────────────────────────────────────
+#  Profesional: login 
 @router.post("/professional/login", response_model=TokenOut)
 def login_profesional(payload: LoginProfesional, db: Session = Depends(get_db)):
     user = db.query(Usuario).filter(Usuario.email == payload.email, Usuario.tipo == TipoUsuario.PROFESIONAL).first()
@@ -163,7 +163,7 @@ def login_profesional(payload: LoginProfesional, db: Session = Depends(get_db)):
     token = create_access_token(user.id_usuario, user.tipo.value)
     return TokenOut(access_token=token, user=_user_dict(user, extra=extra))
  
-# ── Me ────────────────────────────────────────────────────────────────────────
+#  Me 
 @router.get("/me")
 def me(user: Usuario = Depends(get_current_user), db: Session = Depends(get_db)):
     extra = {}

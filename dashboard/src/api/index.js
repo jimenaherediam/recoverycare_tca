@@ -22,7 +22,7 @@ http.interceptors.response.use(
   }
 )
 
-// ── Auth ─────────────────────────────────────────────────────────────────────
+//  Auth 
 export const authAPI = {
   loginProfessional: (email, password) =>
     http.post('/auth/professional/login', { email, password }),
@@ -31,7 +31,7 @@ export const authAPI = {
   me: () => http.get('/auth/me'),
 }
 
-// ── Professional ─────────────────────────────────────────────────────────────
+//  Professional 
 export const professionalAPI = {
   stats: () => http.get('/professional/stats'),
   patients: () => http.get('/professional/patients'),
@@ -49,7 +49,7 @@ export const professionalAPI = {
   patientChatHistory: (id) => http.get(`/professional/patients/${id}/chat`),
 }
 
-// ── Alerts ────────────────────────────────────────────────────────────────────
+//  Alerts 
 export const alertsAPI = {
   list: () => http.get('/alerts'),
   markReviewed: (id) => http.patch(`/alerts/${id}`, { revisada: true }),

@@ -44,7 +44,7 @@ class PacienteOut(BaseModel):
         from_attributes = True
 
 
-# --- Meals ---
+# --- Comidas ---
 
 class MealRecordIn(BaseModel):
     tipo_ingesta: Optional[str] = None
@@ -110,7 +110,7 @@ class ChatHistoryItem(BaseModel):
         from_attributes = True
 
 
-# --- Appointments ---
+# --- Citas ---
 class CitaIn(BaseModel):
     fecha: datetime
     motivo: Optional[str] = None
@@ -128,7 +128,7 @@ class CitaOut(BaseModel):
         from_attributes = True
 
 
-# --- Plans ---
+# --- Planes ---
 class PlanOut(BaseModel):
     id_plan: int
     tipo: TipoPlan
@@ -141,7 +141,7 @@ class PlanOut(BaseModel):
         from_attributes = True
 
 
-# --- Day history ---
+# --- Historial del dia ---
 class DayHistoryOut(BaseModel):
     fecha: date
     comidas: List[MealRecordOut]

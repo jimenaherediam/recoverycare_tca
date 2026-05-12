@@ -3,7 +3,7 @@ SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
 SET time_zone = "+00:00";
 
--- ========== TABLA: profesional (CORREGIDA) ==========
+-- ========== TABLA: profesional ==========
 CREATE TABLE IF NOT EXISTS `profesional` (
   `id_profesional` int(11) NOT NULL PRIMARY KEY,
   `especialidad` ENUM('PSIQUIATRA', 'PSICÓLOGO', 'NUTRICIONISTA', '') DEFAULT NULL,

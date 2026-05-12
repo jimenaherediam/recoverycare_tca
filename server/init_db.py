@@ -5,7 +5,7 @@ from pathlib import Path
 def convert_mysql_to_sqlite(sql_file, db_path):
     """Convierte un archivo SQL de MySQL a SQLite """
 
-    # 1. Borrar la base de datos vieja si existe para evitar "table already exists"
+    # Borrar la base de datos vieja si existe para evitar "table already exists"
     if Path(db_path).exists():
         Path(db_path).unlink()
         print("Base de datos anterior eliminada. Creando una nueva...")
