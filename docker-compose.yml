@@ -33,7 +33,7 @@ services:
       context: ./frontend-pacient
       dockerfile: Dockerfile
       args:
-        - VITE_API_URL=http://LAPTOP-NAK9FUKV.local:8000
+        - VITE_API_URL=http://localhost:8000
     container_name: gentle-healer-frontend
     ports:
       - "80:80"
